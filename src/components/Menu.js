@@ -26,7 +26,7 @@ const Menu = () => {
       style={tailwind` flex flex-row items-center border-t-[1px] pt-2 h-full bg-[#FFFFFF] w-full`}
     >
       <TouchableOpacity
-        style={tailwind`w-[25%] flex items-center justify-center`}
+        style={tailwind`w-[25%] flex flex-col items-center justify-center`}
         onPress={() => {
           setColor("Dashboard");
           navigation.navigate("Dashboard");
@@ -39,7 +39,7 @@ const Menu = () => {
         <Text style={tailwind`text-xs`}>Dashboard</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={tailwind`w-[25%] flex items-center justify-center`}
+        style={tailwind`w-[25%] flex flex-col  items-center justify-center`}
         onPress={() => {
           setColor("Track Bus");
           navigation.navigate("Track Bus");
@@ -52,7 +52,7 @@ const Menu = () => {
         <Text style={tailwind`text-xs`}>Track</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={tailwind`w-[25%] flex items-center justify-center`}
+        style={tailwind`w-[25%] flex flex-col items-center justify-center`}
         onPress={() => {
           setColor("Show Ticket");
           navigation.navigate("Show Ticket");
@@ -65,7 +65,7 @@ const Menu = () => {
         <Text style={tailwind`text-xs`}>Show Ticket</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={tailwind`w-[25%] flex items-center justify-center`}
+        style={tailwind`w-[25%] flex flex-col  items-center justify-center`}
         onPress={() => {
           setColor("Login");
           navigation.navigate("Login");
