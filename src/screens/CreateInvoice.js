@@ -1,6 +1,14 @@
-import react, { useState } from "react";
+import react, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getAuth } from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  doc,
+  setDoc,
+} from "firebase/firestore";
 import {
   StyleSheet,
   Text,
@@ -18,19 +26,24 @@ import { DataTable } from "react-native-paper";
 import tw from "twrnc";
 import InvoiceInfo from "../components/InvoiceInfo";
 import PdfGenerator from "../components/PdfGenerator";
+import { RotateCcw, Save } from "lucide-react-native";
 
 // import DatePicker from "react-native-date-picker";
 
 const CreateInvoice = (props) => {
   const { width, height } = Dimensions.get("window");
+  const route = props.route;
+  const edit_data = route.params;
   // console.log(width, height);
 
   const navigation = props.navigation;
   const [InvName, SetInvName] = useState("");
   const [InvDate, SetInvDate] = useState("");
-  const [InvDsc, SetInvDsc] = useState([{ item: "", qty: null, amt: null }]);
+  const [InvDsc, SetInvDsc] = useState([
+    { item: "", quantity: null, amount: null },
+  ]);
   const [total, setTotal] = useState(0);
-  // const [InvAmt, SetInvAmt] = useState([]);
+  // const [Invamount, SetInvamount] = useState([]);
   const [InvNo, SetInvNo] = useState();
   // From
   const [InvFromName, SetInvFromName] = useState("");
@@ -47,56 +60,148 @@ const CreateInvoice = (props) => {
   const [InvToEmail, SetInvToEmail] = useState("");
   const [InvToPhone, SetInvToPhone] = useState("");
 
+  useEffect(() => {
+    // console.log("use effect !!");
+    if (edit_data !== undefined && edit_data.edit == true) {
+      SetInvName(edit_data.data.invoiceName);
+      SetInvDate(edit_data.data.date);
+      SetInvDsc(edit_data.data.description);
+      setTotal(edit_data.data.total);
+      SetInvNo(edit_data.data.invoiceNumber);
+
+      SetInvToName(edit_data.data.to.name);
+      SetInvToStreet(edit_data.data.to.street);
+      SetInvToAddress(edit_data.data.to.address);
+      SetInvToZip(edit_data.data.to.zip);
+      SetInvToEmail(edit_data.data.to.email);
+      SetInvToPhone(edit_data.data.to.phone);
+
+      SetInvFromName(edit_data.data.from.name);
+      SetInvFromStreet(edit_data.data.from.street);
+      SetInvFromAddress(edit_data.data.from.address);
+      SetInvFromZip(edit_data.data.from.zip);
+      SetInvFromEmail(edit_data.data.from.email);
+      SetInvFromPhone(edit_data.data.from.phone);
+      //   InvDsc.map((item) => {
+      //     if (item.amount != null && item.quantity != null) {
+      //       setTotal((prev) => {
+      //         const num =
+      //           Number(prev) + Number(item.quantity) * Number(item.amount);
+
+      //         return num;
+      //       });
+      //     }
+      //   });
+    }
+  }, [edit_data]);
   // const [gettoChildData, setGettoChildData] = useState({});
   // const [getfromChildData, setGetfromChildData] = useState({});
+  const empty = () => {
+    SetInvName("");
+    SetInvDate("");
+    SetInvDsc([{ item: "", quantity: null, amount: null }]);
+    setTotal(0);
+    SetInvNo("");
+
+    SetInvToName("");
+    SetInvToStreet("");
+    SetInvToAddress("");
+    SetInvToZip();
+    SetInvToEmail("");
+    SetInvToPhone("");
+
+    SetInvFromName("");
+    SetInvFromStreet("");
+    SetInvFromAddress("");
+    SetInvFromZip();
+    SetInvFromEmail("");
+    SetInvFromPhone("");
+  };
 
   const saveInvoice = () => {
     // setGettoChildData();
-    const inv_no = InvNo;
-    const inv_name = InvName;
-    const toData = {
-      InvToName,
-      InvToStreet,
-      InvToAddress,
-      InvToZip,
-      InvToEmail,
-      InvToPhone,
-    };
-    const fromData = {
-      InvFromName,
-      InvFromStreet,
-      InvFromAddress,
-      InvFromZip,
-      InvFromEmail,
-      InvFromPhone,
-    };
-    console.log(inv_no, inv_name, toData, fromData);
-    Alert.alert("Invoice saved successfully");
-    console.log("save");
+
+    const auth = getAuth();
+    const db = getFirestore();
+    let myTotal = 0;
+
     setTotal(0);
     InvDsc.map((item) => {
-      if (item.amt != null && item.qty != null) {
+      if (item.amount != null && item.quantity != null) {
+        myTotal += Number(item.quantity) * Number(item.amount);
         setTotal((prev) => {
-          console.log(prev, item.qty, item.amt);
-          const num = Number(prev) + Number(item.qty) * Number(item.amt);
+          // console.log(prev, item.quantity, item.amount);
+          const num =
+            Number(prev) + Number(item.quantity) * Number(item.amount);
+
           return num;
         });
       }
     });
+
+    const InvoiceData = {
+      invoiceNumber: InvNo,
+      invoiceName: InvName,
+      date: InvDate,
+      total: myTotal,
+      owner: auth.currentUser.uid,
+      to: {
+        name: InvToName,
+        street: InvToStreet,
+        address: InvToAddress,
+        zip: InvToZip,
+        email: InvToEmail,
+        phone: InvToPhone,
+      },
+      from: {
+        name: InvFromName,
+        street: InvFromStreet,
+        address: InvFromAddress,
+        zip: InvFromZip,
+        email: InvFromEmail,
+        phone: InvFromPhone,
+      },
+      description: InvDsc,
+    };
+
+    if (edit_data && edit_data.edit == true) {
+      const docRef = doc(db, "invoices", edit_data.id);
+      setDoc(docRef, InvoiceData)
+        .then((docRef) => {
+          console.log("Document has been edited successfully");
+          Alert.alert("Invoice edited successfully");
+        })
+        .catch((error) => {
+          console.log(error);
+          Alert.alert("UnSuccessful");
+        });
+    } else {
+      const collectionRef = collection(db, "invoices");
+      addDoc(collectionRef, InvoiceData)
+        .then((docRef) => {
+          console.log("Document has been added successfully");
+          Alert.alert("Invoice saved successfully");
+        })
+        .catch((error) => {
+          console.log(error);
+          Alert.alert("UnSuccessful");
+        });
+    }
   };
 
   const reset = () => {
     console.log("reset");
+    if (edit_data) {
+      edit_data = null;
+    }
     Alert.alert("Are You Sure", "Are you sure you want to remove", [
-      // The "Yes" button
       {
         text: "Yes",
         onPress: () => {
-          SetInvName("");
+          empty();
         },
       },
-      // The "No" button
-      // Does nothing but dismiss the dialog when tapped
+
       {
         text: "No",
       },
@@ -110,7 +215,7 @@ const CreateInvoice = (props) => {
         <View style={tw`w-full border-2`}>
           <View style={tw`flex items-center justify-center w-full border-b-2`}>
             <TextInput
-              style={tw` font-sans text-3xl font-bold text-center w-full `}
+              style={tw`  text-3xl font-bold text-center w-full `}
               placeholder="INVOICE"
               value={InvName}
               onChangeText={(input) => SetInvName(input)}
@@ -121,7 +226,7 @@ const CreateInvoice = (props) => {
               <View
                 style={tw` box-border w-[50%] flex flex-row my-2 items-center `}
               >
-                <Text style={tw`text-lg font-sans `}>Invoice No : </Text>
+                <Text style={tw`text-lg  `}>Invoice No : </Text>
                 <TextInput
                   style={tw`w-[29%]  p-1`}
                   value={InvNo}
@@ -131,7 +236,7 @@ const CreateInvoice = (props) => {
                 ></TextInput>
               </View>
               <View style={tw`box-border w-[50%] flex flex-row my-2`}>
-                <Text style={tw`text-lg font-sans`}>Date : </Text>
+                <Text style={tw`text-lg `}>Date : </Text>
                 <TextInput
                   style={tw`w-25  p-1`}
                   value={InvDate}
@@ -154,7 +259,7 @@ const CreateInvoice = (props) => {
                 </Text>
                 <View style={tw`bg-blue-50 rounded-md p-3`}>
                   <View style={tw`flex flex-row my-1`}>
-                    <Text style={tw`font-sans text-lg`}>Name : </Text>
+                    <Text style={tw` text-lg`}>Name : </Text>
                     <TextInput
                       style={tw`text-lg w-[80%]`}
                       value={InvToName}
@@ -162,23 +267,23 @@ const CreateInvoice = (props) => {
                     />
                   </View>
                   <View style={tw`flex flex-col my-1`}>
-                    <Text style={tw` font-sans mb-2 text-lg`}>Address : </Text>
+                    <Text style={tw`  mb-2 text-lg`}>Address : </Text>
                     <View style={tw`pl-3`}>
                       <TextInput
-                        style={tw` font-sans text-lg`}
+                        style={tw`  text-lg`}
                         placeholderStyle={tw`text-red-600`}
                         placeholder="Street Adress"
                         value={InvToStreet}
                         onChangeText={(input) => SetInvToStreet(input)}
                       />
                       <TextInput
-                        style={tw`font-sans text-lg`}
+                        style={tw` text-lg`}
                         placeholder="City, State"
                         value={InvToAddress}
                         onChangeText={(input) => SetInvToAddress(input)}
                       />
                       <TextInput
-                        style={tw` font-sans text-lg`}
+                        style={tw`  text-lg`}
                         placeholder="Zip"
                         value={InvToZip}
                         onChangeText={(input) => SetInvToZip(input)}
@@ -187,17 +292,17 @@ const CreateInvoice = (props) => {
                   </View>
                   <View>
                     <View style={tw`flex flex-row my-1`}>
-                      <Text style={tw`font-sans text-lg`}>Phone : </Text>
+                      <Text style={tw` text-lg`}>Phone : </Text>
                       <TextInput
-                        style={tw`font-sans text-lg w-[80%]`}
+                        style={tw` text-lg w-[80%]`}
                         value={InvToPhone}
                         onChangeText={(input) => SetInvToPhone(input)}
                       />
                     </View>
                     <View style={tw`flex flex-row my-1`}>
-                      <Text style={tw`font-sans text-lg`}>Email : </Text>
+                      <Text style={tw` text-lg`}>Email : </Text>
                       <TextInput
-                        style={tw`font-sans text-lg w-[80%]`}
+                        style={tw` text-lg w-[80%]`}
                         value={InvToEmail}
                         onChangeText={(input) => SetInvToEmail(input)}
                       />
@@ -213,7 +318,7 @@ const CreateInvoice = (props) => {
                 </Text>
                 <View style={tw`bg-blue-50 rounded-md p-3`}>
                   <View style={tw`flex flex-row my-1`}>
-                    <Text style={tw`font-sans text-lg`}>Name : </Text>
+                    <Text style={tw` text-lg`}>Name : </Text>
                     <TextInput
                       style={tw`w-[80%]`}
                       value={InvFromName}
@@ -221,23 +326,23 @@ const CreateInvoice = (props) => {
                     />
                   </View>
                   <View style={tw` flex flex-col my-1`}>
-                    <Text style={tw` font-sans mb-2 text-lg`}>Address : </Text>
+                    <Text style={tw`  mb-2 text-lg`}>Address : </Text>
                     <View style={tw`pl-3`}>
                       <TextInput
-                        style={tw` font-sans text-lg`}
+                        style={tw`  text-lg`}
                         placeholderStyle={tw`text-red-600`}
                         placeholder="Street Adress"
                         value={InvFromStreet}
                         onChangeText={(input) => SetInvFromStreet(input)}
                       />
                       <TextInput
-                        style={tw`font-sans text-lg`}
+                        style={tw` text-lg`}
                         placeholder="City, State"
                         value={InvFromAddress}
                         onChangeText={(input) => SetInvFromAddress(input)}
                       />
                       <TextInput
-                        style={tw` font-sans text-lg`}
+                        style={tw`  text-lg`}
                         placeholder="Zip"
                         value={InvFromZip}
                         onChangeText={(input) => SetInvFromZip(input)}
@@ -246,17 +351,17 @@ const CreateInvoice = (props) => {
                   </View>
                   <View>
                     <View style={tw`flex flex-row my-1`}>
-                      <Text style={tw`font-sans text-lg`}>Phone : </Text>
+                      <Text style={tw` text-lg`}>Phone : </Text>
                       <TextInput
-                        style={tw`font-sans text-lg w-[80%]`}
+                        style={tw` text-lg w-[80%]`}
                         value={InvFromPhone}
                         onChangeText={(input) => SetInvFromPhone(input)}
                       />
                     </View>
                     <View style={tw`flex flex-row my-1`}>
-                      <Text style={tw`font-sans text-lg`}>Email : </Text>
+                      <Text style={tw` text-lg`}>Email : </Text>
                       <TextInput
-                        style={tw`font-sans text-lg w-[80%]`}
+                        style={tw` text-lg w-[80%]`}
                         value={InvFromEmail}
                         onChangeText={(input) => SetInvFromEmail(input)}
                       />
@@ -285,7 +390,7 @@ const CreateInvoice = (props) => {
                   </DataTable.Title>
                   <DataTable.Title
                     numeric
-                    style={tw`flex-1 justify-self-end`}
+                    style={tw`flex-1 `}
                   ></DataTable.Title>
                 </DataTable.Header>
                 <FlatList
@@ -315,23 +420,13 @@ const CreateInvoice = (props) => {
                           <View style={tw`flex-1 items-center justify-center`}>
                             <TextInput
                               style={tw`w-full text-center `}
-                              value={item.qty}
+                              value={item.quantity}
                               onChangeText={(text) => {
                                 SetInvDsc((prev) => {
                                   let newarr = [...prev];
-                                  newarr[index].qty = text;
+                                  newarr[index].quantity = text;
                                   return newarr;
                                 });
-                                // if (item.amt != null && item.qty != null) {
-                                //   setTotal((prev) => {
-
-                                //     console.log(prev, item.qty, item.amt);
-                                //     const num =
-                                //       Number(prev) +
-                                //       Number(item.qty) * Number(item.amt);
-                                //     return num;
-                                //   });
-                                // }
                               }}
                             />
                           </View>
@@ -342,22 +437,13 @@ const CreateInvoice = (props) => {
                           >
                             <TextInput
                               style={tw`w-full text-center`}
-                              value={item.amt}
+                              value={item.amount}
                               onChangeText={(text) => {
                                 SetInvDsc((prev) => {
                                   let newarr = [...prev];
-                                  newarr[index].amt = text;
+                                  newarr[index].amount = text;
                                   return newarr;
                                 });
-                                // if (item.amt != null && item.qty != null) {
-                                //   setTotal((prev) => {
-                                //     console.log(prev,item.qty, item.amt);
-                                //     const num =
-                                //       Number(prev) +
-                                //       Number(item.qty) * Number(item.amt);
-                                //     return num;
-                                //   });
-                                // }
                               }}
                             />
                           </View>
@@ -385,11 +471,11 @@ const CreateInvoice = (props) => {
                 />
               </DataTable>
               <Text
-                style={tw`my-4 text-xl font-bold w-full border-b-2 border-blue-700`}
+                style={tw`my-2 text-xl font-bold w-full border-b-2 border-blue-700`}
               ></Text>
               {/* <View> */}
               <View
-                style={tw`mx-auto flex flex-row justify-between w-[30%] mb-3 `}
+                style={tw`mx-auto flex flex-row justify-between w-[50%] mb-3 `}
               >
                 <Text style={tw`text-xl font-semibold`}>Total</Text>
 
@@ -400,9 +486,9 @@ const CreateInvoice = (props) => {
                 title="add"
                 onPress={() => {
                   SetInvDsc((prev) => {
-                    console.log(prev);
+                    // console.log(prev);
                     let newarr = [...prev];
-                    newarr.push({ item: "", qty: null, amt: null });
+                    newarr.push({ item: "", quantity: null, amount: null });
                     console.log(newarr);
                     return newarr;
                   });
@@ -412,19 +498,21 @@ const CreateInvoice = (props) => {
             {/* DESCRIPTION TABLE END */}
           </View>
         </View>
-        <View style={tw`flex flex-row justify-between px-4`}>
+        <View style={tw`flex flex-row justify-between px-4 py-3`}>
           <TouchableOpacity
-            style={tw`bg-[#f6a192] w-fit px-[8px] py-[6px] my-2`}
+            style={tw`shadow-md rounded-md flex flex-row  items-center justify-center px-4 py-2 bg-[#3F94EF]`}
             onPress={() => saveInvoice()}
           >
-            <Text style={tw`w-fit`}>Save</Text>
+            <Save color="white" />
+            <Text style={tw`text-white px-1`}>Save</Text>
           </TouchableOpacity>
-          <PdfGenerator></PdfGenerator>
+          {/* <PdfGenerator></PdfGenerator> */}
           <TouchableOpacity
-            style={tw`bg-[#f6a192] w-fit px-[8px] py-[6px] my-2`}
+            style={tw`shadow-md rounded-md flex flex-row  items-center justify-center px-4 py-2 bg-[#3F94EF]`}
             onPress={() => reset()}
           >
-            <Text style={tw`w-fit`}>Reset</Text>
+            <RotateCcw color="white" />
+            <Text style={tw`text-white px-1`}>Reset</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -433,17 +521,5 @@ const CreateInvoice = (props) => {
     // </SafeAreaView>
   );
 };
-const styles = StyleSheet.create({
-  main: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    // justifyContent: "center",
-  },
-});
 
 export default CreateInvoice;

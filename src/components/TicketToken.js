@@ -4,9 +4,10 @@ import tailwind from "twrnc";
 import { TouchableOpacity } from "react-native";
 import PdfGenerator from "./PdfGenerator";
 import { FileEdit } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
 
 const TicketToken = (props) => {
-  console.log(props.data);
+  const navigation = useNavigation();
   const data = props.data;
   // const date = new Date(props.data.date);
   // //   console.log(typeof date);
@@ -15,20 +16,20 @@ const TicketToken = (props) => {
   // const disp_date = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`;
   // const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
   return (
-    <View style={tailwind` shadow-xl shadow-darkblue-900 m-4 rounded `}>
+    <View style={tailwind` shadow-xl rounded-lg  m-4`}>
       <View
-        style={tailwind`flex flex-row justify-center items-center px-2 py-1 bg-[#ACF35C]`}
+        style={tailwind`flex flex-row rounded-md justify-center items-center px-2 py-1 bg-[#ACF35C]`}
       >
-        <Text style={tailwind`text-xl font-bold text-Black`}>
-          {data.InvoiceName}
+        <Text style={tailwind`text-xl font-bold text-black`}>
+          {data.invoiceName}
         </Text>
       </View>
       <View
         style={tailwind`px-3 py-3 bg-white  w-full flex flex-col justify-between`}
       >
         <View style={tailwind`pb-4`}>
-          <Text style={tailwind`text-xl text-black`}>
-            Invoice No : {data.InvoiceNumber}
+          <Text style={tailwind`font-bold text-xl text-black`}>
+            Invoice No : {data.invoiceNumber}
           </Text>
         </View>
         <View style={tailwind`w-full flex flex-row justify-between mb-2`}>
@@ -49,13 +50,20 @@ const TicketToken = (props) => {
           <Text style={tailwind`text-lg`}>End : {data.destination}</Text> */}
         </View>
         <View style={tailwind`w-full flex flex-row justify-between`}>
-          <PdfGenerator />
+          <PdfGenerator items={data} />
 
           <TouchableOpacity
-            style={tailwind`shadow-md rounded flex flex-row  items-center justify-center px-4 py-1 bg-[#3F94EF]`}
+            onPress={() => {
+              navigation.navigate("Create Invoice", {
+                id: props.id,
+                data: data,
+                edit: true,
+              });
+            }}
+            style={tailwind`shadow-md rounded-md flex flex-row  items-center justify-center px-4 py-2 bg-[#3F94EF]`}
           >
             <FileEdit color="white" />
-            <Text style={tailwind`text-white`}>Edit</Text>
+            <Text style={tailwind`text-white px-1`}>Edit</Text>
           </TouchableOpacity>
         </View>
         {/* <View style={tailwind`flex flex-col items-end`}>

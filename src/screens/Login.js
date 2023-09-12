@@ -11,24 +11,38 @@ import {
 import React, { useState } from "react";
 import tw from "twrnc";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { ActivityIndicator } from "react-native-paper";
+
 // import { ScrollView } from "react-native";
 
 const Login = (props) => {
   const [email, set_email] = useState("");
   const [password, set_pass] = useState("");
+  const [isLoading, setLoading] = useState(false);
+
   const Submit = () => {
+    setLoading(true);
     const auth = getAuth();
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
+        setLoading(false);
         // Signed in
         // ...
       })
       .catch((error) => {
+        setLoading(false);
         // const errorCode = error.code;
         // const errorMessage = error.message;
         Alert.alert("Username or password Is in correct");
       });
   };
+  if (isLoading) {
+    return (
+      <View style={tw`flex-1 justify-center items-center h-full w-full`}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>

@@ -24,6 +24,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { getFirestore } from "firebase/firestore";
+import { ActivityIndicator } from "react-native";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -45,8 +46,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 export default function App() {
-  // const [app, setApp] = useState();
-  // const [db, setDb] = useState();
+  const [isLoading, setLoading] = useState(true);
+
   const Tab = createBottomTabNavigator();
   const Stack = createNativeStackNavigator();
 
@@ -55,16 +56,28 @@ export default function App() {
   // useEffect(() => {}, []);
 
   useEffect(() => {
-    // setApp(getAuth(app));
-    // setDb(getFirestore(app));
-    // Auth listener
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      user ? setUser(user) : setUser(null);
+      if (user) {
+        setUser(user);
+        setLoading(false);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
     });
     return () => {
       unsubscribe();
+      setLoading(false);
     };
   }, []);
+
+  if (isLoading) {
+    return (
+      <View style={tw`flex-1 justify-center items-center h-full w-full`}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   if (user) {
     return (
