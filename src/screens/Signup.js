@@ -10,25 +10,45 @@ import React, { useState } from "react";
 import Checkbox from "expo-checkbox";
 import tw from "twrnc";
 import { ScrollView } from "react-native";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
 
 // import { openDatabase } from "react-native-sqlite-storage";
 
 const Signup = (props) => {
   const [name, set_name] = useState("");
-  const [username, set_username] = useState("");
-  const [Password, set_pass] = useState("");
+  const [email, set_email] = useState("");
+  const [password, set_pass] = useState("");
   const [agree, set_agree] = useState(false);
 
   //   let db = openDatabase("user.db");
   // useAnimatedValue;
 
   const Submit = () => {
-    if (username === "" && Password === "") {
-      Alert.alert("Please Enter a Valid Username and Password");
+    if (email === "" && password === "") {
+      Alert.alert("Please Enter a Valid Username and password");
     } else {
       Alert.alert("Your Account Has been created Successfully");
-      const obj = { name, username, Password };
-      props.navigation.navigate("Login", obj);
+
+      const auth = getAuth();
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          updateProfile(userCredential.user, {
+            displayName: name,
+          });
+
+          props.navigation.navigate("Dashboard");
+        })
+        .catch((error) => {
+          // const errorCode = error.code;
+          // const errorMessage = error.message;
+          Alert.alert(
+            "Please Enter a Valid Username and password greater than 8 letters"
+          );
+        });
     }
   };
   return (
@@ -69,22 +89,22 @@ const Signup = (props) => {
               <TextInput
                 style={tw`shadow appearance-none border rounded w-80 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline `}
                 autoCapitalize="none"
-                value={username}
+                value={email}
                 onChangeText={(input) => {
-                  set_username(input);
+                  set_email(input);
                 }}
               />
             </View>
             <View style={tw`realtive mb-4`}>
               <Text style={tw`block text-gray-700 text-xl font-bold mb-2`}>
-                Password
+                password
               </Text>
               <TextInput
                 style={tw`shadow appearance-none border rounded w-80 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline `}
                 autoCapitalize="none"
                 autoCorrect={false}
                 secureTextEntry={true}
-                value={Password}
+                value={password}
                 onChangeText={(input) => {
                   set_pass(input);
                 }}

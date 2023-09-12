@@ -28,7 +28,7 @@ const CreateInvoice = (props) => {
   const navigation = props.navigation;
   const [InvName, SetInvName] = useState("");
   const [InvDate, SetInvDate] = useState("");
-  const [InvDsc, SetInvDsc] = useState([{ item: "", qty: 500, amt: null }]);
+  const [InvDsc, SetInvDsc] = useState([{ item: "", qty: null, amt: null }]);
   const [total, setTotal] = useState(0);
   // const [InvAmt, SetInvAmt] = useState([]);
   const [InvNo, SetInvNo] = useState();
@@ -73,6 +73,16 @@ const CreateInvoice = (props) => {
     console.log(inv_no, inv_name, toData, fromData);
     Alert.alert("Invoice saved successfully");
     console.log("save");
+    setTotal(0);
+    InvDsc.map((item) => {
+      if (item.amt != null && item.qty != null) {
+        setTotal((prev) => {
+          console.log(prev, item.qty, item.amt);
+          const num = Number(prev) + Number(item.qty) * Number(item.amt);
+          return num;
+        });
+      }
+    });
   };
 
   const reset = () => {
@@ -283,10 +293,12 @@ const CreateInvoice = (props) => {
                   renderItem={({ item, index }) => {
                     return (
                       <DataTable.Row key={index}>
-                        <DataTable.Cell style={tw`flex-2`}>
-                          <View style={tw`w-full`}>
+                        <View style={tw`flex-2  w-full`}>
+                          <View
+                            style={tw`flex-1 w-full items-center justify-center`}
+                          >
                             <TextInput
-                              style={tw`w-full`}
+                              style={tw`w-full `}
                               value={item.item}
                               onChangeText={(text) => {
                                 SetInvDsc((prev) => {
@@ -297,15 +309,12 @@ const CreateInvoice = (props) => {
                               }}
                             />
                           </View>
-                        </DataTable.Cell>
+                        </View>
 
-                        <DataTable.Cell
-                          numeric
-                          style={tw`flex-2 w-full border-red-200 border-2`}
-                        >
-                          <View style={tw`flex-1  border-blue-200 border-2`}>
+                        <View style={tw`flex-2 w-full `}>
+                          <View style={tw`flex-1 items-center justify-center`}>
                             <TextInput
-                              style={tw`w-full text-center border-2`}
+                              style={tw`w-full text-center `}
                               value={item.qty}
                               onChangeText={(text) => {
                                 SetInvDsc((prev) => {
@@ -313,15 +322,24 @@ const CreateInvoice = (props) => {
                                   newarr[index].qty = text;
                                   return newarr;
                                 });
+                                // if (item.amt != null && item.qty != null) {
+                                //   setTotal((prev) => {
+
+                                //     console.log(prev, item.qty, item.amt);
+                                //     const num =
+                                //       Number(prev) +
+                                //       Number(item.qty) * Number(item.amt);
+                                //     return num;
+                                //   });
+                                // }
                               }}
                             />
                           </View>
-                        </DataTable.Cell>
-                        <DataTable.Cell
-                          numeric
-                          style={tw`flex-2 border-red-600 border-2`}
-                        >
-                          <View style={tw`w-full`}>
+                        </View>
+                        <View style={tw`flex-2`}>
+                          <View
+                            style={tw`flex-1 w-full items-center justify-center`}
+                          >
                             <TextInput
                               style={tw`w-full text-center`}
                               value={item.amt}
@@ -331,24 +349,53 @@ const CreateInvoice = (props) => {
                                   newarr[index].amt = text;
                                   return newarr;
                                 });
+                                // if (item.amt != null && item.qty != null) {
+                                //   setTotal((prev) => {
+                                //     console.log(prev,item.qty, item.amt);
+                                //     const num =
+                                //       Number(prev) +
+                                //       Number(item.qty) * Number(item.amt);
+                                //     return num;
+                                //   });
+                                // }
                               }}
                             />
                           </View>
-                        </DataTable.Cell>
-                        <DataTable.Cell style={tw`flex-1 justify-end`}>
-                          <TouchableOpacity>
+                        </View>
+                        <View style={tw`flex-1 justify-center items-end`}>
+                          <TouchableOpacity
+                            onPress={() => {
+                              SetInvDsc((prev) => {
+                                let newarr = [...prev];
+                                newarr.splice(index, 1);
+                                return newarr;
+                              });
+                            }}
+                          >
                             <Text
                               style={tw` p-2 text-center rounded-full bg-red-700 text-white `}
                             >
                               X
                             </Text>
                           </TouchableOpacity>
-                        </DataTable.Cell>
+                        </View>
                       </DataTable.Row>
                     );
                   }}
                 />
               </DataTable>
+              <Text
+                style={tw`my-4 text-xl font-bold w-full border-b-2 border-blue-700`}
+              ></Text>
+              {/* <View> */}
+              <View
+                style={tw`mx-auto flex flex-row justify-between w-[30%] mb-3 `}
+              >
+                <Text style={tw`text-xl font-semibold`}>Total</Text>
+
+                <Text style={tw`text-xl font-semibold`}>₹ {total}</Text>
+              </View>
+              {/* </View> */}
               <Button
                 title="add"
                 onPress={() => {
@@ -398,7 +445,5 @@ const styles = StyleSheet.create({
     // justifyContent: "center",
   },
 });
-
-// console.log(ticketData);
 
 export default CreateInvoice;

@@ -10,20 +10,24 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import tw from "twrnc";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 // import { ScrollView } from "react-native";
 
 const Login = (props) => {
-  const [username, set_username] = useState("");
-  const [Password, set_pass] = useState("");
+  const [email, set_email] = useState("");
+  const [password, set_pass] = useState("");
   const Submit = () => {
-    console.log("yes");
-    if (username === "rohitshaw340@gmail.com" && Password === "1234567890") {
-      Alert.alert("Verified Successfully");
-      const obj = { username: username };
-      props.navigation.navigate("Dashboard", obj);
-    } else {
-      Alert.alert("Username or Password Is in correct");
-    }
+    const auth = getAuth();
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in
+        // ...
+      })
+      .catch((error) => {
+        // const errorCode = error.code;
+        // const errorMessage = error.message;
+        Alert.alert("Username or password Is in correct");
+      });
   };
 
   return (
@@ -49,22 +53,22 @@ const Login = (props) => {
               <TextInput
                 style={tw`border rounded w-80 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
                 autoCapitalize="none"
-                value={username}
+                value={email}
                 onChangeText={(input) => {
-                  set_username(input);
+                  set_email(input);
                 }}
               />
             </View>
             <View style={tw`relative mb-4`}>
               <Text style={tw`block text-gray-700 text-xl font-bold mb-2`}>
-                Password
+                password
               </Text>
               <TextInput
                 style={tw`border rounded w-80 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline `}
                 autoCapitalize="none"
                 autoCorrect={false}
                 secureTextEntry={true}
-                value={Password}
+                value={password}
                 onChangeText={(input) => {
                   set_pass(input);
                 }}
@@ -72,7 +76,7 @@ const Login = (props) => {
               <Text
                 style={tw`absolute text-gray-400 -bottom-5 right-0 text-sm`}
               >
-                Forgot Your Password ?
+                Forgot Your password ?
               </Text>
             </View>
             <View style={tw`flex flex-col items-center justify-center`}>
