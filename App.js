@@ -23,14 +23,20 @@ export default function App() {
   return (
     <NavigationContainer>
       <View style={tw`w-full h-full flex flex-col`}>
-        <View style={tw`h-90%`}>
+        <View style={tw`h-full`}>
           <Tab.Navigator
             screenOptions={{
-              tabBarLabelStyle: { fontSize: 15 },
+              tabBarLabelStyle: {
+                fontSize: 15,
+                justifyContent: "center",
+                alignItems: "center",
+              },
               tabBarStyle: {
                 height: "10%",
-                position: "fixed",
-                bottom: "4px",
+                paddingBottom: 3,
+                // position: "fixed",
+                // bottom: 2,
+                // border: "2px solid black ",
               },
             }}
             initialRouteName="Dashboard"
@@ -49,7 +55,7 @@ export default function App() {
               name="Create Invoice"
               component={CreateInvoice}
               options={{
-                tabBarLabel: "Create Invoice",
+                tabBarLabel: "New Inv",
                 tabBarIcon: ({ focused }) => {
                   return (
                     <FilePlus color={focused ? "red" : "gray"} size={28} />
@@ -61,7 +67,7 @@ export default function App() {
               name="Show Invoices"
               component={ShowInvoices}
               options={{
-                tabBarLabel: "Show Invoices",
+                tabBarLabel: "Show Inv",
                 tabBarIcon: ({ focused }) => {
                   return (
                     <FileText color={focused ? "red" : "gray"} size={28} />

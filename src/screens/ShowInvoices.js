@@ -30,6 +30,7 @@ const ticketData = [
 ];
 
 const ShowInvoices = () => {
+  console.log("");
   return (
     <View>
       <FlatList
