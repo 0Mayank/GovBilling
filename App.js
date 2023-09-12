@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, Image } from "react-native";
 import tw from "twrnc";
 import Login from "./src/screens/Login";
 import Signup from "./src/screens/Signup";
+import CreateInvoice from "./src/screens/CreateInvoice";
 import ShowInvoices from "./src/screens/ShowInvoices";
 import Setting from "./src/screens/Setting";
 import Dashboard from "./src/screens/Dashboard";
@@ -12,11 +13,10 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import {
   Home,
-  BusFront,
-  Ticket,
   User2Icon,
   Settings,
   FileText,
+  FilePlus,
 } from "lucide-react-native";
 export default function App() {
   const Tab = createBottomTabNavigator();
@@ -26,7 +26,7 @@ export default function App() {
         <View style={tw`h-90%`}>
           <Tab.Navigator
             screenOptions={{
-              tabBarLabelStyle: { fontSize: "15px" },
+              tabBarLabelStyle: { fontSize: 15 },
               tabBarStyle: {
                 height: "10%",
                 position: "fixed",
@@ -46,22 +46,13 @@ export default function App() {
               }}
             />
             <Tab.Screen
-              name="Signup"
-              component={Signup}
+              name="Create Invoice"
+              component={CreateInvoice}
               options={{
-                tabBarLabel: "Signup",
-                tabBarButton: () => null,
-                tabBarVisible: false,
-              }}
-            />
-            <Tab.Screen
-              name="Setting"
-              component={Setting}
-              options={{
-                tabBarLabel: "Settings",
+                tabBarLabel: "Create Invoice",
                 tabBarIcon: ({ focused }) => {
                   return (
-                    <Settings color={focused ? "red" : "gray"} size={28} />
+                    <FilePlus color={focused ? "red" : "gray"} size={28} />
                   );
                 },
               }}
@@ -88,6 +79,15 @@ export default function App() {
                     <User2Icon color={focused ? "red" : "gray"} size={28} />
                   );
                 },
+              }}
+            />
+            <Tab.Screen
+              name="Signup"
+              component={Signup}
+              options={{
+                tabBarLabel: "Signup",
+                tabBarButton: () => null,
+                tabBarVisible: false,
               }}
             />
           </Tab.Navigator>
